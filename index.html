@@ -21,13 +21,17 @@
     .btn-success{background:#28a745;color:#fff}.btn-success:hover{background:#1e7e34}
     .btn-danger{background:#dc3545;color:#fff}.btn-danger:hover{background:#c82333}
     .btn-outline{background:0 0;color:var(--text);border:2px solid var(--border)}.btn-outline:hover{background:var(--header-bg)}
+    .btn-warning{background:#ffc107;color:#222}.btn-warning:hover{background:#e0a800}
     .btn-sm{padding:4px 10px;font-size:12px}
     .btn-lg{font-size:20px;padding:16px 48px}
+    .btn-demo{background:#6c757d;color:#fff}.btn-demo:hover{background:#5a6268}
+    .btn-guest{background:#8e44ad;color:#fff}.btn-guest:hover{background:#732d91}
     .theme-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text)}
     .theme-toggle .track{width:44px;height:24px;background:#ddd;border-radius:12px;position:relative;transition:.3s;flex-shrink:0}
     .theme-toggle .track .thumb{width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:transform .3s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
     .dark .theme-toggle .track{background:#4a6a9a}
     .dark .theme-toggle .track .thumb{transform:translateX(20px)}
+    .guest-badge{display:inline-block;background:#8e44ad;color:#fff;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;margin-left:8px}
     #startPage{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center;gap:24px}
     #startPage h1{font-size:28px}
     #appHeader{display:none;align-items:center;flex-wrap:wrap;gap:10px 16px;padding:12px 16px;background:var(--card);border-radius:8px;border:1px solid var(--border);margin-bottom:16px;transition:.3s}
@@ -46,6 +50,9 @@
     #authPage .auth-box .btn{width:100%;margin-top:8px}
     #authPage .auth-box .switch{background:none;border:none;color:#007bff;cursor:pointer;font-size:13px;margin-top:12px}
     #authPage .auth-box .switch:hover{text-decoration:underline}
+    #authPage .auth-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--text);opacity:.5;font-size:13px}
+    #authPage .auth-divider::before,#authPage .auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+    #authPage .guest-hint{font-size:12px;color:var(--text);opacity:.6;margin-top:6px}
     .header-row{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px}
     .header-row .left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
     .header-row .spacer{flex:1}
@@ -156,6 +163,8 @@
     .user-info .logout-btn{background:none;border:none;color:#dc3545;cursor:pointer;font-size:12px}
     .user-info .logout-btn:hover{text-decoration:underline}
     .loading{text-align:center;padding:40px;font-size:16px;opacity:.7}
+    .upgrade-hint{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-top:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;transition:.3s}
+    .upgrade-hint .btn{font-size:12px;padding:4px 12px}
     @media(max-width:768px){
       body{padding:8px}
       #startPage h1{font-size:24px}
@@ -199,6 +208,7 @@
       .modal{padding:16px;margin:10px}
       .admin-category .cat-header{flex-direction:column;align-items:stretch;gap:6px}
       #authPage .auth-box{padding:20px}
+      .upgrade-hint{flex-direction:column;text-align:center}
     }
     @media(max-width:400px){
       .accordion-header{font-size:12px;padding:8px 10px}
@@ -222,6 +232,12 @@
     <input type="password" id="authPassword" placeholder="Пароль" />
     <button class="btn btn-primary" id="authSubmitBtn">Войти</button>
     <button class="btn btn-outline" id="authGoogleBtn" style="width:100%;margin-top:8px">🔑 Войти через Google</button>
+    
+    <div class="auth-divider">или</div>
+    
+    <button class="btn btn-guest" id="authGuestBtn">👤 Войти без регистрации</button>
+    <div class="guest-hint">Данные сохраняются в облаке. Позже можно будет привязать email</div>
+    
     <button class="switch" id="authSwitchBtn">Нет аккаунта? Зарегистрироваться</button>
     <div id="authError" style="color:#dc3545;font-size:13px;margin-top:8px;display:none"></div>
   </div>
@@ -236,7 +252,11 @@
 
 <!-- ШАПКА -->
 <div id="appHeader">
-  <div><span class="order-id" id="currentOrderId">Заявка #</span><span class="order-date" id="currentOrderDate"></span></div>
+  <div>
+    <span class="order-id" id="currentOrderId">Заявка #</span>
+    <span class="order-date" id="currentOrderDate"></span>
+    <span class="guest-badge" id="guestBadge" style="display:none">👤 Гость</span>
+  </div>
   <div class="spacer"></div>
   <div class="btn-group">
     <span class="user-info" id="userInfo"><span id="userNameDisplay"></span><button class="logout-btn" id="logoutBtn">🚪 Выйти</button></span>
@@ -249,6 +269,14 @@
       <div class="track"><div class="thumb"></div></div>
       <span>☀️</span>
     </div>
+  </div>
+</div>
+
+<!-- БЛОК ПРЕДЛОЖЕНИЯ ПРИВЯЗАТЬ АККАУНТ (для гостей) -->
+<div id="upgradeBlock" style="display:none;margin-bottom:12px">
+  <div class="upgrade-hint">
+    <span>🔐 Вы вошли как гость. <strong>Привяжите email</strong>, чтобы сохранить доступ к заявкам навсегда!</span>
+    <button class="btn btn-primary btn-sm" id="upgradeBtn">🔗 Привязать аккаунт</button>
   </div>
 </div>
 
@@ -313,6 +341,7 @@
   </div>
 </div>
 
+<!-- МОДАЛЬНОЕ ОКНО -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <h3 id="modalTitle">Редактировать товар</h3>
@@ -345,13 +374,12 @@ const firebaseConfig = {
   measurementId: "G-2JW9GZVQDS"
 };
 
-// Инициализация Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
 // ============================================================
-// ДАННЫЕ КАТАЛОГА (по умолчанию)
+// ДАННЫЕ КАТАЛОГА
 // ============================================================
 const DC = {
   'Хризантема': ['Хризантема Бигуди', 'Хризантема Бигуди жёлтая', 'Хризантема Бонус жёлтая', 'Хризантема кустовая Алтай белая', 'Хризантема кустовая Балтика белая', 'Хризантема кустовая бежевая', 'Хризантема кустовая Бонтемпи', 'Хризантема кустовая бордо', 'Хризантема кустовая желтая', 'Хризантема кустовая Кеннеди белая', 'Хризантема кустовая Кеннеди розовая', 'Хризантема кустовая крашеная', 'Хризантема кустовая нежно-розовая', 'Хризантема кустовая Россия 200', 'Хризантема кустовая Сталион', 'Хризантема кустовая Фабиен Перпл', 'Хризантема Лион Кинг оранжевая', 'Хризантема Ньютон', 'Хризантема одноголовая Алемани', 'Хризантема одноголовая белая Анастасия', 'Хризантема одноголовая белая Магнум', 'Хризантема одноголовая желтая', 'Хризантема одноголовая желтая Магнум', 'Хризантема одноголовая Калимба', 'Хризантема одноголовая крашенная', 'Хризантема одноголовая Момоко', 'Хризантема одноголовая фиолетовая', 'Хризантема одноголовая Ханимун нежно фиолетовая', 'Хризантема одноголовая Этруско', 'Хризантема сантини'],
@@ -379,7 +407,7 @@ const $$ = s => document.querySelectorAll(s);
 // ============================================================
 // СОСТОЯНИЕ
 // ============================================================
-let C = null; // каталог
+let C = null;
 let orders = [];
 let current = null;
 let idC = 0;
@@ -387,39 +415,28 @@ let search = '';
 let favs = [];
 let isDark = false;
 let currentUser = null;
+let isGuest = false;
 
 // ============================================================
-// FIREBASE: ЗАГРУЗКА КАТАЛОГА
+// FIREBASE: КАТАЛОГ
 // ============================================================
 async function loadCatalogFromFirebase() {
   try {
     const doc = await db.collection('catalog').doc('main').get();
-    if (doc.exists) {
-      C = doc.data();
-      return C;
-    } else {
-      // Если каталога нет в Firebase, создаём дефолтный
-      await db.collection('catalog').doc('main').set(DC);
-      C = JSON.parse(JSON.stringify(DC));
-      return C;
-    }
+    if (doc.exists) { C = doc.data(); return C; }
+    else { await db.collection('catalog').doc('main').set(DC);
+      C = JSON.parse(JSON.stringify(DC)); return C; }
   } catch (e) {
     console.error('Ошибка загрузки каталога:', e);
-    C = JSON.parse(JSON.stringify(DC));
-    return C;
+    C = JSON.parse(JSON.stringify(DC)); return C;
   }
 }
-
 async function saveCatalogToFirebase(catalog) {
-  try {
-    await db.collection('catalog').doc('main').set(catalog);
-  } catch (e) {
-    console.error('Ошибка сохранения каталога:', e);
-  }
+  try { await db.collection('catalog').doc('main').set(catalog); } catch (e) { console.error('Ошибка сохранения каталога:', e); }
 }
 
 // ============================================================
-// FIREBASE: ЗАГРУЗКА ЗАЯВОК
+// FIREBASE: ЗАЯВКИ
 // ============================================================
 async function loadOrdersFromFirebase(userId) {
   try {
@@ -435,21 +452,11 @@ async function loadOrdersFromFirebase(userId) {
     return [];
   }
 }
-
 async function saveOrderToFirebase(order) {
-  try {
-    await db.collection('orders').doc(order.id).set(order);
-  } catch (e) {
-    console.error('Ошибка сохранения заявки:', e);
-  }
+  try { await db.collection('orders').doc(order.id).set(order); } catch (e) { console.error('Ошибка сохранения заявки:', e); }
 }
-
 async function deleteOrderFromFirebase(orderId) {
-  try {
-    await db.collection('orders').doc(orderId).delete();
-  } catch (e) {
-    console.error('Ошибка удаления заявки:', e);
-  }
+  try { await db.collection('orders').doc(orderId).delete(); } catch (e) { console.error('Ошибка удаления заявки:', e); }
 }
 
 // ============================================================
@@ -464,23 +471,17 @@ async function loadFavoritesFromFirebase(userId) {
     return [];
   }
 }
-
 async function saveFavoritesToFirebase(userId, favorites) {
-  try {
-    await db.collection('favorites').doc(userId).set({ favorites });
-  } catch (e) {
-    console.error('Ошибка сохранения избранного:', e);
-  }
+  try { await db.collection('favorites').doc(userId).set({ favorites }); } catch (e) { console.error('Ошибка сохранения избранного:', e); }
 }
 
 // ============================================================
 // АВТОРИЗАЦИЯ
 // ============================================================
 function showAuthPage() {
-  document.querySelectorAll('#startPage, #mainPage, #ordersListPage, #adminPage, #appHeader').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('#startPage, #mainPage, #ordersListPage, #adminPage, #appHeader, #upgradeBlock').forEach(el => el.style.display = 'none');
   document.getElementById('authPage').style.display = 'flex';
 }
-
 function showApp() {
   document.getElementById('authPage').style.display = 'none';
   document.getElementById('startPage').style.display = 'flex';
@@ -488,6 +489,7 @@ function showApp() {
   document.getElementById('ordersListPage').style.display = 'none';
   document.getElementById('adminPage').style.display = 'none';
   document.getElementById('appHeader').style.display = 'none';
+  document.getElementById('upgradeBlock').style.display = 'none';
 }
 
 let isLoginMode = true;
@@ -498,6 +500,7 @@ const authError = $('#authError');
 const authEmail = $('#authEmail');
 const authPassword = $('#authPassword');
 const authGoogleBtn = $('#authGoogleBtn');
+const authGuestBtn = $('#authGuestBtn');
 
 authSwitchBtn.onclick = () => {
   isLoginMode = !isLoginMode;
@@ -510,14 +513,12 @@ authSwitchBtn.onclick = () => {
 async function handleAuth() {
   const email = authEmail.value.trim();
   const password = authPassword.value.trim();
-  if (!email || !password) { authError.textContent = 'Заполните все поля'; authError.style.display = 'block'; return; }
+  if (!email || !password) { authError.textContent = 'Заполните все поля';
+    authError.style.display = 'block'; return; }
   authError.style.display = 'none';
   try {
-    if (isLoginMode) {
-      await auth.signInWithEmailAndPassword(email, password);
-    } else {
-      await auth.createUserWithEmailAndPassword(email, password);
-    }
+    if (isLoginMode) { await auth.signInWithEmailAndPassword(email, password); } 
+    else { await auth.createUserWithEmailAndPassword(email, password); }
   } catch (e) {
     authError.textContent = e.message;
     authError.style.display = 'block';
@@ -525,8 +526,10 @@ async function handleAuth() {
 }
 
 authSubmitBtn.onclick = handleAuth;
-authEmail.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); authPassword.focus(); } };
-authPassword.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); handleAuth(); } };
+authEmail.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault();
+    authPassword.focus(); } };
+authPassword.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault();
+    handleAuth(); } };
 
 authGoogleBtn.onclick = async () => {
   try {
@@ -538,35 +541,126 @@ authGoogleBtn.onclick = async () => {
   }
 };
 
+// ===== ВХОД БЕЗ РЕГИСТРАЦИИ (АНОНИМНЫЙ) =====
+authGuestBtn.onclick = async () => {
+  try {
+    await auth.signInAnonymously();
+  } catch (e) {
+    authError.textContent = 'Ошибка: ' + e.message;
+    authError.style.display = 'block';
+  }
+};
+
+// ===== ПРИВЯЗКА АККАУНТА (ДЛЯ ГОСТЕЙ) =====
+$('#upgradeBtn').onclick = async () => {
+  if (!currentUser) return;
+  if (currentUser.isAnonymous) {
+    const email = prompt('Введите email для привязки:');
+    if (!email) return;
+    const password = prompt('Введите пароль (минимум 6 символов):');
+    if (!password || password.length < 6) { alert('Пароль должен быть минимум 6 символов'); return; }
+    try {
+      const credential = firebase.auth.EmailAuthProvider.credential(email, password);
+      await currentUser.linkWithCredential(credential);
+      alert('✅ Аккаунт успешно привязан! Теперь вы можете входить по email и паролю.');
+      location.reload();
+    } catch (e) {
+      alert('❌ Ошибка: ' + e.message);
+    }
+  }
+};
+
 // ============================================================
-// ОСНОВНАЯ ЛОГИКА (с Firebase)
+// ОСНОВНАЯ ЛОГИКА
 // ============================================================
-const start = $('#startPage'), main = $('#mainPage'), list = $('#ordersListPage'), adminPage = $('#adminPage'), header = $('#appHeader');
-const cOrder = $('#createOrderBtn'), cList = $('#createOrderFromListBtn'), showList = $('#showOrdersListBtn'), back = $('#backToOrderBtn'), saveBtn = $('#saveOrderBtn');
-const backAdmin = $('#backFromAdminBtn'), adminToggle = $('#adminToggleBtn'), resetBtn = $('#resetCatalogBtn');
-const idSpan = $('#currentOrderId'), dateSpan = $('#currentOrderDate'), listCont = $('#ordersListContainer');
-const catCont = $('#catalogContainer'), ordCont = $('#orderContainer'), adminCont = $('#adminContainer');
-const err = $('#errorBlock'), bought = $('#boughtCount'), total = $('#totalCount'), comm = $('#commentCount');
-const searchInp = $('#searchInput'), searchCount = $('#searchCount');
-const mName = $('#manualName'), mQ1 = $('#manualQty1'), mQ2 = $('#manualQty2'), mAdd = $('#manualAddBtn');
-const note = $('#orderNote'), analyticsPanel = $('#analyticsPanel'), analyticsContent = $('#analyticsContent');
-const analyticsToggle = $('#analyticsToggleBtn'), themeToggle = $('#themeToggle');
-const userNameDisplay = $('#userNameDisplay'), logoutBtn = $('#logoutBtn');
+const start = $('#startPage'),
+  main = $('#mainPage'),
+  list = $('#ordersListPage'),
+  adminPage = $('#adminPage'),
+  header = $('#appHeader');
+const cOrder = $('#createOrderBtn'),
+  cList = $('#createOrderFromListBtn'),
+  showList = $('#showOrdersListBtn'),
+  back = $('#backToOrderBtn'),
+  saveBtn = $('#saveOrderBtn');
+const backAdmin = $('#backFromAdminBtn'),
+  adminToggle = $('#adminToggleBtn'),
+  resetBtn = $('#resetCatalogBtn');
+const idSpan = $('#currentOrderId'),
+  dateSpan = $('#currentOrderDate'),
+  listCont = $('#ordersListContainer');
+const catCont = $('#catalogContainer'),
+  ordCont = $('#orderContainer'),
+  adminCont = $('#adminContainer');
+const err = $('#errorBlock'),
+  bought = $('#boughtCount'),
+  total = $('#totalCount'),
+  comm = $('#commentCount');
+const searchInp = $('#searchInput'),
+  searchCount = $('#searchCount');
+const mName = $('#manualName'),
+  mQ1 = $('#manualQty1'),
+  mQ2 = $('#manualQty2'),
+  mAdd = $('#manualAddBtn');
+const note = $('#orderNote'),
+  analyticsPanel = $('#analyticsPanel'),
+  analyticsContent = $('#analyticsContent');
+const analyticsToggle = $('#analyticsToggleBtn'),
+  themeToggle = $('#themeToggle');
+const userNameDisplay = $('#userNameDisplay'),
+  logoutBtn = $('#logoutBtn');
+const guestBadge = $('#guestBadge');
+const upgradeBlock = $('#upgradeBlock');
 
 // ===== НАВИГАЦИЯ =====
-const goStart = () => { start.style.display = 'flex'; main.style.display = 'none'; list.style.display = 'none'; adminPage.style.display = 'none'; header.style.display = 'none'; analyticsToggle.style.display = 'none' };
-const goMain = () => { start.style.display = 'none'; main.style.display = 'block'; list.style.display = 'none'; adminPage.style.display = 'none'; header.style.display = 'flex'; analyticsToggle.style.display = current ? 'inline-flex' : 'none'; if (current) { idSpan.textContent = 'Заявка #' + current.id; dateSpan.textContent = 'от ' + fmt(current.createdAt) } };
-const goList = () => { start.style.display = 'none'; main.style.display = 'none'; list.style.display = 'block'; adminPage.style.display = 'none'; header.style.display = 'flex'; analyticsToggle.style.display = 'none'; renderList() };
-const goAdmin = () => { start.style.display = 'none'; main.style.display = 'none'; list.style.display = 'none'; adminPage.style.display = 'block'; header.style.display = 'flex'; analyticsToggle.style.display = 'none'; renderAdmin() };
+const goStart = () => { start.style.display = 'flex';
+  main.style.display = 'none';
+  list.style.display = 'none';
+  adminPage.style.display = 'none';
+  header.style.display = 'none';
+  analyticsToggle.style.display = 'none';
+  upgradeBlock.style.display = 'none' };
+const goMain = () => { start.style.display = 'none';
+  main.style.display = 'block';
+  list.style.display = 'none';
+  adminPage.style.display = 'none';
+  header.style.display = 'flex';
+  analyticsToggle.style.display = current ? 'inline-flex' : 'none';
+  if (current) { idSpan.textContent = 'Заявка #' + current.id;
+    dateSpan.textContent = 'от ' + fmt(current.createdAt) }
+  if (currentUser && currentUser.isAnonymous) upgradeBlock.style.display = 'block';
+  else upgradeBlock.style.display = 'none' };
+const goList = () => { start.style.display = 'none';
+  main.style.display = 'none';
+  list.style.display = 'block';
+  adminPage.style.display = 'none';
+  header.style.display = 'flex';
+  analyticsToggle.style.display = 'none';
+  if (currentUser && currentUser.isAnonymous) upgradeBlock.style.display = 'block';
+  else upgradeBlock.style.display = 'none';
+  renderList() };
+const goAdmin = () => { start.style.display = 'none';
+  main.style.display = 'none';
+  list.style.display = 'none';
+  adminPage.style.display = 'block';
+  header.style.display = 'flex';
+  analyticsToggle.style.display = 'none';
+  if (currentUser && currentUser.isAnonymous) upgradeBlock.style.display = 'block';
+  else upgradeBlock.style.display = 'none';
+  renderAdmin() };
 
 // ===== ТЕМА =====
-function applyTheme(d) { isDark = d; document.body.classList.toggle('dark', d); localStorage.setItem('flower_theme', d ? 'dark' : 'light') }
+function applyTheme(d) { isDark = d;
+  document.body.classList.toggle('dark', d);
+  localStorage.setItem('flower_theme', d ? 'dark' : 'light') }
 themeToggle.onclick = () => applyTheme(!isDark);
-if (localStorage.getItem('flower_theme') === 'dark') { isDark = true; document.body.classList.add('dark') }
+if (localStorage.getItem('flower_theme') === 'dark') { isDark = true;
+  document.body.classList.add('dark') }
 
 // ===== ЗАЯВКИ =====
-function createOrder() { const n = Date.now(), d = fmtId(n), c = orders.filter(o => o.id.startsWith(d)).length + 1; return { id: d + '-' + c, createdAt: n, items: [], note: '', userId: currentUser.uid } }
-
+function createOrder() { const n = Date.now(),
+    d = fmtId(n),
+    c = orders.filter(o => o.id.startsWith(d)).length + 1; return { id: d + '-' + c, createdAt: n, items: [], note: '', userId: currentUser.uid } }
 async function openOrder(o) {
   const existing = orders.find(x => x.id === o.id);
   if (!existing) { orders.push(o); }
@@ -577,14 +671,12 @@ async function openOrder(o) {
   renderOrder();
   if (note) note.value = o.note || '';
 }
-
 async function newOrder() {
   const o = createOrder();
   orders.unshift(o);
   await saveOrderToFirebase(o);
   openOrder(o);
 }
-
 async function saveCurrent() {
   if (!current) return;
   current.note = note ? note.value : '';
@@ -595,17 +687,17 @@ async function saveCurrent() {
   saveBtn.textContent = '✅ Сохранено';
   setTimeout(() => saveBtn.textContent = '💾 Сохранить', 1500);
 }
-
 async function delOrder(id) {
   if (!confirm('Удалить заявку #' + id + '?')) return;
   orders = orders.filter(o => o.id !== id);
   await deleteOrderFromFirebase(id);
-  if (current && current.id === id) { current = null; orders.length ? goList() : goStart() } else renderList();
+  if (current && current.id === id) { current = null;
+    orders.length ? goList() : goStart() } else renderList();
 }
-
 function loadOrder(id) {
   const o = orders.find(x => x.id === id);
-  if (o) { if (current) saveCurrent(); openOrder(o) }
+  if (o) { if (current) saveCurrent();
+    openOrder(o) }
 }
 
 // ===== ИЗБРАННОЕ =====
@@ -627,7 +719,8 @@ function renderList() {
     return;
   }
   orders.forEach(o => {
-    const t = o.items.length, b = o.items.filter(i => i.bought).length;
+    const t = o.items.length,
+      b = o.items.filter(i => i.bought).length;
     const card = document.createElement('div');
     card.className = 'order-card';
     if (current && current.id === o.id) { card.style.borderColor = '#007bff';
@@ -838,17 +931,6 @@ function renderAdmin() {
     ni.onkeydown = e => { if (e.key === 'Enter') ab.click() } }
 }
 
-// ===== ДОБАВЛЕНИЕ =====
-function addToOrder(n, q1, q2) {
-  if (!current) { showErr('Сначала создайте заявку'); return !1 }
-  if (!n.trim()) { showErr('Введите наименование'); return !1 }
-  if (q1 === 0 && q2 === 0) { showErr('Добавьте количество'); return !1 }
-  current.items.push({ name: n.trim(), qty1: q1, qty2: q2, bought: !1, comment: '' });
-  renderOrder();
-  saveCurrent();
-  return !0
-}
-
 // ===== МОДАЛЬНОЕ ОКНО =====
 const modal = $('#modalOverlay'),
   modalTitle = $('#modalTitle'),
@@ -872,7 +954,6 @@ function openModal(title, name, cat, cats, cb) {
   modal.classList.add('active');
   setTimeout(() => modalName.focus(), 100)
 }
-
 function closeModal() { modal.classList.remove('active');
   modalCb = null }
 modalCancel.onclick = closeModal;
@@ -880,6 +961,17 @@ modal.onclick = e => { if (e.target === modal) closeModal() };
 modalSave.onclick = () => { if (modalCb) { const n = modalName.value.trim(),
       c = modalCat.value; if (n) modalCb(n, c); else alert('Введите наименование') } };
 modalName.onkeydown = e => { if (e.key === 'Enter') modalSave.click() };
+
+// ===== ДОБАВЛЕНИЕ =====
+function addToOrder(n, q1, q2) {
+  if (!current) { showErr('Сначала создайте заявку'); return !1 }
+  if (!n.trim()) { showErr('Введите наименование'); return !1 }
+  if (q1 === 0 && q2 === 0) { showErr('Добавьте количество'); return !1 }
+  current.items.push({ name: n.trim(), qty1: q1, qty2: q2, bought: !1, comment: '' });
+  renderOrder();
+  saveCurrent();
+  return !0
+}
 
 // ===== СОБЫТИЯ =====
 cOrder.onclick = newOrder;
@@ -926,7 +1018,17 @@ logoutBtn.onclick = () => { auth.signOut() };
 auth.onAuthStateChanged(async user => {
   if (user) {
     currentUser = user;
-    userNameDisplay.textContent = user.displayName || user.email || 'Пользователь';
+    isGuest = user.isAnonymous || false;
+    
+    // Отображаем имя пользователя
+    if (isGuest) {
+      userNameDisplay.textContent = '👤 Гость';
+      guestBadge.style.display = 'inline-block';
+    } else {
+      userNameDisplay.textContent = user.displayName || user.email || 'Пользователь';
+      guestBadge.style.display = 'none';
+    }
+    
     document.getElementById('authPage').style.display = 'none';
     document.getElementById('appHeader').style.display = 'flex';
     
@@ -934,6 +1036,13 @@ auth.onAuthStateChanged(async user => {
     C = await loadCatalogFromFirebase();
     orders = await loadOrdersFromFirebase(user.uid);
     favs = await loadFavoritesFromFirebase(user.uid);
+    
+    // Показываем блок привязки для гостей
+    if (isGuest) {
+      upgradeBlock.style.display = 'block';
+    } else {
+      upgradeBlock.style.display = 'none';
+    }
     
     if (orders.length > 0) {
       goList();
@@ -946,6 +1055,7 @@ auth.onAuthStateChanged(async user => {
     currentUser = null;
     orders = [];
     current = null;
+    isGuest = false;
     showAuthPage();
   }
 });
